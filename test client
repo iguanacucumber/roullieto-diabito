@@ -1,0 +1,92 @@
+import pygame
+import socket
+import threading
+import pickle
+
+# Pygame constants
+WIDTH, HEIGHT = 640, 480
+FPS = 30
+
+# Client constants
+HOST = 'localhost'
+PORT = 5555
+BUFFER_SIZE = 1024
+
+# Define game variables
+pacman_pos = [WIDTH // 2, HEIGHT // 2]
+pacman_speed = 5
+direction = [0, 0]  # x and y movement direction
+
+# Initialize Pygame
+pygame.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('2 Player Pac-Man')
+clock = pygame.time.Clock()
+
+# Socket connection
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((HOST, PORT))
+
+# Function to send data to server
+def send_data():
+    while True:
+        # Send Pac-Man's position and direction to server
+        data = pickle.dumps(pacman_pos)
+        client_socket.send(data)
+
+# Function to receive data from server
+def receive_data():
+    while True:
+        try:
+            data = client_socket.recv(BUFFER_SIZE)
+            if data:
+                other_player_pos = pickle.loads(data)
+                # Update the other player's position (for 2nd player)
+                pygame.draw.circle(screen, (255, 0, 0), other_player_pos, 20)
+        except:
+            pass
+
+# Start threads for sending and receiving data
+thread_send = threading.Thread(target=send_data)
+thread_receive = threading.Thread(target=receive_data)
+
+thread_send.start()
+thread_receive.start()
+
+# Main game loop
+running = True
+while running:
+    screen.fill((0, 0, 0))  # Fill the screen with black
+    
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    
+    # Handle movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        direction = [-pacman_speed, 0]
+    if keys[pygame.K_RIGHT]:
+        direction = [pacman_speed, 0]
+    if keys[pygame.K_UP]:
+        direction = [0, -pacman_speed]
+    if keys[pygame.K_DOWN]:
+        direction = [0, pacman_speed]
+    
+    # Update Pac-Man's position
+    pacman_pos[0] += direction[0]
+    pacman_pos[1] += direction[1]
+    
+    # Draw Pac-Man (the player)
+    pygame.draw.circle(screen, (255, 255, 0), pacman_pos, 20)
+    
+    # Update the screen
+    pygame.display.flip()
+    
+    # Cap the frame rate
+    clock.tick(FPS)
+
+# Clean up
+client_socket.close()
+pygame.quit()
