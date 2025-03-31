@@ -1,23 +1,9 @@
 import socket
 from sys import argv
 
-port = 8000
-remote_ip = "127.0.0.1"
+from utils import args
 
-for i in range(len(argv)):
-    if argv[i] == "-p" or argv[i] == "--port":
-        port = argv[i + 1]
-    elif argv[i] == "-i" or argv[i] == "--ip":
-        remote_ip = argv[i + 1]
-    elif argv[i] == "-h" or argv[i] == "--help":
-        print("-i, --ip:   IP")
-        print("-p, --port: PORT")
-        exit()
-
-
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# Officially connecting to the server.
-client.connect((remote_ip, port))
+port, remote_ip = args(argv)
 
 
 def send(msg):
@@ -27,8 +13,22 @@ def send(msg):
     send_length += b" " * (1024 - len(send_length))
     client.send(send_length)
     client.send(message)
-    print(client.recv(1024).decode("utf-8"))
+    received_message = client.recv(1024).decode("utf-8")
+    print(received_message)
+    return received_message
 
 
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # IPV4 TCP
+client.connect((remote_ip, port))
+
+logged_in = False
+
+print("Login if user exists, automatically signs you up otherwise\n")
 while True:
-    send(input("> "))
+    res = send("[USERNAME]:" + input("Username: "))
+    if res == "[OK]":
+        res = send("[PASSWORD]:" + input("Password: "))
+        if res == "[OK]":
+            input("YES")
+        else:
+            input("FUCK")
