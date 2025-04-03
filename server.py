@@ -19,9 +19,7 @@ def db_writerow(end_row):
 
     with open("db.csv", mode="w") as file_write:
         with open("db.csv", mode="r") as file_read:
-            csv.writer(file_write).writerow(
-                ["username", "password", "highscore", "is-logged-in"]
-            )
+            csv.writer(file_write).writerow(["username", "password", "highscore", "is-logged-in"])
             for row in csv.reader(file_read):
                 length += 1
                 if length == pos_user:
@@ -76,6 +74,9 @@ def handle_client(conn, addr):
                         if row[0] == username:
                             user_exists = True
                         if row[0] == username and row[1] == password:
+                            if row[4] == "True":
+                                conn.send("[ERR]:Already logged in on another client".encode("utf-8"))
+                                exit()
                             logged_in = True
                             highscore = row[3]
                             db_writerow([username, password, highscore, logged_in])
@@ -86,9 +87,9 @@ def handle_client(conn, addr):
                         db_writerow([username, password, highscore, logged_in])
                         conn.send("[OK]".encode("utf-8"))
                     else:
-                        conn.send("[ERR]".encode("utf-8"))
+                        conn.send("[ERR]:user does not exists".encode("utf-8"))
 
-            elif msg == "[OTHER]:":
+            elif msg.startswith("[OTHER]:"):
                 conn.send("[OK]".encode("utf-8"))
 
             print(f"{addr[0]}:{addr[1]}> {msg}")
