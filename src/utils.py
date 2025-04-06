@@ -13,3 +13,26 @@ def args(argv):
             exit()
 
     return port, ip
+
+
+def handle_message(msg):
+    past_header = False
+    message = ""
+    for character in msg:
+        if past_header:
+            message += character
+
+        if character == ":":
+            past_header = True
+
+    return message
+
+
+def clear():
+    from os import system
+    from sys import platform
+
+    if platform.startswith("win"):
+        system("cls")
+    else:
+        system("clear")
