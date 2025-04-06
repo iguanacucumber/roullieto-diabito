@@ -8,5 +8,5 @@ téléchargez tout les fichiers dans le dossiez `src/`
 
 ```sh
 python3 src/client.py --help
-python3 src/serve.py --help
+python3 src/server.py --help
 ```
