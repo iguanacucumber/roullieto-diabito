@@ -17,15 +17,23 @@ def args(argv):
 
 def handle_message(msg):
     past_header = False
+    inside_brackets = False
     message = ""
+    header = ""
     for character in msg:
         if past_header:
             message += character
+        elif inside_brackets:
+            header += character
 
-        if character == ":":
+        if character == "[":
+            inside_brackets = True
+        elif character == "]":
+            inside_brackets = False
+        elif character == ":":
             past_header = True
 
-    return message
+    return message, header
 
 
 def clear():

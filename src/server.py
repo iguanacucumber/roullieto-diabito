@@ -80,10 +80,10 @@ def handle_client(conn, addr):
                 break
                 conn.send("[OK]".encode("utf-8"))
             elif msg.startswith("[USERNAME]:"):
-                username = handle_message(msg)
+                username, _ = handle_message(msg)
                 conn.send("[OK]".encode("utf-8"))
             elif msg.startswith("[PASSWORD]:"):
-                password = handle_message(msg)
+                password, _ = handle_message(msg)
                 with open(db_path, mode="r") as file:
                     for row in csv.reader(file):
                         if row[0] == username:
