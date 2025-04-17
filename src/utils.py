@@ -21,7 +21,7 @@ def handle_message(msg):
     message = ""
     header = ""
     for character in msg:
-        if character == "]":
+        if character == "]" and not past_header:
             inside_brackets = False
 
         if past_header:
@@ -29,7 +29,7 @@ def handle_message(msg):
         elif inside_brackets:
             header += character
 
-        if character == "[":
+        if character == "[" and not past_header:
             inside_brackets = True
         elif character == ":":
             past_header = True
