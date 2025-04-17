@@ -4,6 +4,7 @@ from time import sleep
 
 from utils import args, clear
 
+
 def send(msg):
     message = msg.strip().encode("utf-8")
     msg_length = len(message)
