@@ -21,6 +21,9 @@ def handle_message(msg):
     message = ""
     header = ""
     for character in msg:
+        if character == "]":
+            inside_brackets = False
+
         if past_header:
             message += character
         elif inside_brackets:
@@ -28,8 +31,6 @@ def handle_message(msg):
 
         if character == "[":
             inside_brackets = True
-        elif character == "]":
-            inside_brackets = False
         elif character == ":":
             past_header = True
 

@@ -64,6 +64,45 @@ def db_writerow(end_row):
         return True  # user exists
 
 
+def send(message, conn):
+    conn.send(message.encode("utf-8"))
+
+
+base_map = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 6, 3, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1],
+    [1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1],
+    [1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+]
+
+
 def handle_client(conn, addr):
     print(f"{addr[0]}:{addr[1]} connected.")  # IP:Port
     username = ""
@@ -73,46 +112,46 @@ def handle_client(conn, addr):
     highscore = 0
     while True:
         msg_length = conn.recv(1024).decode("utf-8")
-        if msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode("utf-8")
-            if msg == "[END]":
-                break
-                conn.send("[OK]".encode("utf-8"))
-            elif msg.startswith("[USERNAME]:"):
-                username, _ = handle_message(msg)
-                conn.send("[OK]".encode("utf-8"))
-            elif msg.startswith("[PASSWORD]:"):
-                password, _ = handle_message(msg)
-                with open(db_path, mode="r") as file:
-                    for row in csv.reader(file):
-                        if row[0] == username:
-                            user_exists = True
-                        if row[0] == username and row[1] == password:
-                            logged_in = True
-                            if row[3] == "True":
-                                conn.send("[ERR]:Already logged in on another client".encode("utf-8"))
-                                break
+        if not msg_length:
+            continue
 
-                            highscore = row[2]
-                            db_writerow([username, password, highscore, "True"])  # logged_in = "True"
-
-                            conn.send("[OK]:logged in".encode("utf-8"))
+        msg_length = int(msg_length)
+        response = conn.recv(msg_length).decode("utf-8")
+        message, header = handle_message(response)
+        if header == "END":
+            break
+            send("[OK]", conn)
+        elif header == "USERNAME":
+            username = message
+            send("[OK]", conn)
+        elif header == "PASSWORD":
+            password = message
+            with open(db_path, mode="r") as file:
+                for row in csv.reader(file):
+                    if row[0] == username:
+                        user_exists = True
+                    if row[0] == username and row[1] == password:
+                        logged_in = True
+                        if row[3] == "True":
+                            send("[ERR]:Already logged in on another client", conn)
                             break
-                    if not logged_in and not user_exists:
-                        db_writerow([username, password, highscore, "True"])
-                        conn.send("[OK]".encode("utf-8"))
-                    elif logged_in:
+
+                        highscore = row[2]
+                        db_writerow([username, password, highscore, "True"])  # logged_in = "True"
+
+                        send("[OK]:logged in", conn)
                         break
-                    else:
-                        conn.send("[ERR]: wrong password".encode("utf-8"))
+                if not logged_in and not user_exists:
+                    db_writerow([username, password, highscore, "True"])
+                    send("[OK]:signed up", conn)
+                elif logged_in:
+                    break
+                else:
+                    send("[ERR]:wrong password", conn)
+        else:
+            send("[ERR]", conn)
 
-            elif msg.startswith("[OTHER]:"):
-                conn.send("[OK]".encode("utf-8"))
-            else:
-                conn.send("[ERR]".encode("utf-8"))
-
-            print(f"{addr[0]}:{addr[1]}> {msg}")
+        print(f"{addr[0]}:{addr[1]}> {response}")
 
     conn.close()
 
