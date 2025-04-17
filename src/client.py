@@ -32,12 +32,12 @@ while True:
         print(send("[PASSWORD]:" + input("Password: ")))
 
     sleep(2)
-    
+
     game = True
     while game == True:
-        suj,content= handle_message(res)
-        
-        if suj == "[MAP]" :
-            for i in range (len(content)):
-                for j in  range (len(content[i])):
+        suj, content = handle_message(res)
+
+        if suj == "[MAP]":
+            for i in range(len(content)):
+                for j in range(len(content[i])):
                     jeu.append(j)
