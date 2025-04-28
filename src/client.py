@@ -38,6 +38,5 @@ while True:
         suj, content = handle_message(res)
 
         if suj == "[MAP]":
-            for i in range(len(content)):
-                for j in range(len(content[i])):
-                    jeu.append(j)
+            base_map = strtolistoflists(content)
+            print(base_map)
