@@ -145,7 +145,8 @@ def handle_client(conn, addr):
                     db_writerow([username, password, highscore, "True"])
                     send("[OK]:signed up", conn)
                 elif logged_in:
-                    break
+                map = listtostr(base_map)
+                send("[MAP]:" + map, conn)
                 else:
                     send("[ERR]:wrong password", conn)
         else:
