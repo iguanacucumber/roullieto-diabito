@@ -46,16 +46,16 @@ def clear():
     else:
         system("clear")
 
+
 def listtostr(liste):
     lestr = ""
-    for i in range (len(liste)):
+    for i in range(len(liste)):
         lestr += "["
-        for j in range (len(liste[i])):
+        for j in range(len(liste[i])):
             lestr += str(liste[i][j])
             lestr += ","
         lestr += "]"
     return lestr
-    
 
 
 def strtolistoflists(s):
@@ -70,5 +70,6 @@ def strtolistoflists(s):
         print(f"Erreur lors de la conversion : {e}")
         return None
 
-laliste = [[1,2],[1,5]] 
-print (listtostr(laliste))
+
+laliste = [[1, 2], [1, 5]]
+print(listtostr(laliste))
