@@ -66,7 +66,7 @@ def db_writerow(end_row):
 
 
 def send(message, conn):
-    conn.send(zlib.compress(message.encode("utf-8")))
+    conn.send(message.encode("utf-8"))
 
 
 base_map = [
