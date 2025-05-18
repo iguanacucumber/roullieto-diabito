@@ -1,4 +1,5 @@
 import csv
+import json
 import os
 import socket
 import threading
@@ -65,7 +66,7 @@ def db_writerow(end_row):
 
 
 def send(message, conn):
-    conn.send(message.encode("utf-8"))
+    conn.send(zlib.compress(message.encode("utf-8")))
 
 
 base_map = [
@@ -140,13 +141,21 @@ def handle_client(conn, addr):
                         db_writerow([username, password, highscore, "True"])  # logged_in = "True"
 
                         send("[OK]:logged in", conn)
+                        # Convert base_map into json
+                        base_map_json = json.dumps(base_map)
+                        send("[MAP]:" + base_map_json, conn)
                         break
                 if not logged_in and not user_exists:
                     db_writerow([username, password, highscore, "True"])
+                    logged_in = True
                     send("[OK]:signed up", conn)
+                    # Convert base_map into json
+                    base_map_json = json.dumps(base_map)
+                    send("[MAP]:" + base_map_json, conn)
                 elif logged_in:
-                map = listtostr(base_map)
-                send("[MAP]:" + map, conn)
+                    # Convert base_map into json
+                    base_map_json = json.dumps(base_map)
+                    send("[MAP]:" + base_map_json, conn)
                 else:
                     send("[ERR]:wrong password", conn)
         else:
