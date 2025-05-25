@@ -16,6 +16,7 @@ lobbies_db_path = create_db("lobbies.csv")
 lobbies = {}
 lobby_counter = 1
 connected_users = {}
+lobby_lock = threading.Lock()
 
 
 def send(message, conn):
@@ -23,32 +24,35 @@ def send(message, conn):
 
 
 def get_lobbies():
-    lobby_list = []
-    for lobby_id, lobby_data in lobbies.items():
-        lobby_list.append(
-            {
-                "id": lobby_id,
-                "name": lobby_data["name"],
-                "players": len(lobby_data["players"]),
-                "max_players": lobby_data["max_players"],
-                "status": lobby_data["status"],
-            }
-        )
-    return lobby_list
+    with lobby_lock:
+        lobby_list = []
+        for lobby_id, lobby_data in lobbies.items():
+            lobby_list.append(
+                {
+                    "id": lobby_id,
+                    "name": lobby_data["name"],
+                    "players": len(lobby_data["players"]),
+                    "max_players": lobby_data["max_players"],
+                    "status": lobby_data["status"],
+                }
+            )
+        return lobby_list
 
 
 def get_lobby_info(lobby_id):
-    if lobby_id in lobbies:
-        return lobbies[lobby_id]
-    return None
+    with lobby_lock:
+        if lobby_id in lobbies:
+            return lobbies[lobby_id].copy()
+        return None
 
 
 def create_lobby(name, max_players, creator):
     global lobby_counter
-    lobby_id = lobby_counter
-    lobby_counter += 1
+    with lobby_lock:
+        lobby_id = lobby_counter
+        lobby_counter += 1
 
-    lobbies[lobby_id] = {"name": name, "max_players": max_players, "players": [creator], "status": "waiting", "created_at": time.time(), "host": creator}
+        lobbies[lobby_id] = {"name": name, "max_players": max_players, "players": [creator], "status": "waiting", "created_at": time.time(), "host": creator}
 
     with open(lobbies_db_path, mode="a", newline="") as file:
         writer = csv.writer(file)
@@ -58,61 +62,95 @@ def create_lobby(name, max_players, creator):
 
 
 def remove_user_from_all_lobbies(username):
+    with lobby_lock:
+        lobbies_to_remove = []
+        for lobby_id, lobby in lobbies.items():
+            if username in lobby["players"]:
+                lobby["players"].remove(username)
+
+                if lobby.get("host") == username and lobby["players"]:
+                    lobby["host"] = lobby["players"][0]
+
+                if not lobby["players"]:
+                    lobbies_to_remove.append(lobby_id)
+
+        for lobby_id in lobbies_to_remove:
+            if lobby_id in lobbies:
+                del lobbies[lobby_id]
+
+
+def join_lobby(lobby_id, username):
+    with lobby_lock:
+        if lobby_id not in lobbies:
+            return False
+
+        lobby = lobbies[lobby_id]
+
+        if len(lobby["players"]) >= lobby["max_players"]:
+            return False
+
+        if lobby["status"] != "waiting":
+            return False
+
+        if username in lobby["players"]:
+            return True
+
+        remove_user_from_all_lobbies_unlocked(username)
+        lobby["players"].append(username)
+        return True
+
+
+def remove_user_from_all_lobbies_unlocked(username):
     lobbies_to_remove = []
     for lobby_id, lobby in lobbies.items():
         if username in lobby["players"]:
             lobby["players"].remove(username)
 
-            # If host leaves, assign new host
             if lobby.get("host") == username and lobby["players"]:
                 lobby["host"] = lobby["players"][0]
 
-            # Remove lobby if empty
             if not lobby["players"]:
                 lobbies_to_remove.append(lobby_id)
 
     for lobby_id in lobbies_to_remove:
-        del lobbies[lobby_id]
-
-
-def join_lobby(lobby_id, username):
-    if lobby_id in lobbies:
-        lobby = lobbies[lobby_id]
-
-        # Remove user from other lobbies first
-        remove_user_from_all_lobbies(username)
-
-        if len(lobby["players"]) < lobby["max_players"] and lobby["status"] == "waiting":
-            lobby["players"].append(username)
-            return True
-    return False
+        if lobby_id in lobbies:
+            del lobbies[lobby_id]
 
 
 def leave_lobby(lobby_id, username):
-    if lobby_id in lobbies:
+    with lobby_lock:
+        if lobby_id not in lobbies:
+            return False
+
         lobby = lobbies[lobby_id]
-        if username in lobby["players"]:
-            lobby["players"].remove(username)
+        if username not in lobby["players"]:
+            return False
 
-            # If host leaves, assign new host
-            if lobby.get("host") == username and lobby["players"]:
-                lobby["host"] = lobby["players"][0]
+        lobby["players"].remove(username)
 
-            # Remove lobby if empty
-            if not lobby["players"]:
-                del lobbies[lobby_id]
-            return True
-    return False
+        if lobby.get("host") == username and lobby["players"]:
+            lobby["host"] = lobby["players"][0]
+
+        if not lobby["players"]:
+            del lobbies[lobby_id]
+
+        return True
 
 
 def start_game(lobby_id, username):
-    if lobby_id in lobbies:
+    with lobby_lock:
+        if lobby_id not in lobbies:
+            return False
+
         lobby = lobbies[lobby_id]
-        # Only host can start the game
-        if lobby.get("host") == username and len(lobby["players"]) >= 2:
-            lobby["status"] = "playing"
-            return True
-    return False
+        if lobby.get("host") != username:
+            return False
+
+        if len(lobby["players"]) < 2:
+            return False
+
+        lobby["status"] = "playing"
+        return True
 
 
 def cleanup_user(username):
@@ -233,7 +271,15 @@ def handle_client(conn, addr):
                             current_lobby = lobby_id
                             send(f"[LOBBY_JOINED]:{lobby_id}", conn)
                         else:
-                            send("[ERR]:could not join lobby", conn)
+                            lobby_info = get_lobby_info(lobby_id)
+                            if not lobby_info:
+                                send("[ERR]:lobby not found", conn)
+                            elif len(lobby_info["players"]) >= lobby_info["max_players"]:
+                                send("[ERR]:lobby is full", conn)
+                            elif lobby_info["status"] != "waiting":
+                                send("[ERR]:game already started", conn)
+                            else:
+                                send("[ERR]:could not join lobby", conn)
                     except:
                         send("[ERR]:invalid lobby id", conn)
                 else:
@@ -241,14 +287,13 @@ def handle_client(conn, addr):
             elif header == "LEAVE_LOBBY":
                 if logged_in and current_lobby:
                     try:
-                        lobby_id = int(message)
+                        lobby_id = int(message) if message.strip() else current_lobby
                         if leave_lobby(lobby_id, username):
                             current_lobby = None
                             send("[OK]:left lobby", conn)
                         else:
                             send("[ERR]:could not leave lobby", conn)
                     except:
-                        # Try to leave current lobby if no ID provided
                         if leave_lobby(current_lobby, username):
                             current_lobby = None
                             send("[OK]:left lobby", conn)
@@ -259,12 +304,19 @@ def handle_client(conn, addr):
             elif header == "START_GAME":
                 if logged_in and current_lobby:
                     try:
-                        lobby_id = int(message)
+                        lobby_id = int(message) if message.strip() else current_lobby
                         if start_game(lobby_id, username):
                             send("[GAME_STARTED]:game started", conn)
-                            # TODO: Implement actual game logic here
                         else:
-                            send("[ERR]:cannot start game", conn)
+                            lobby_info = get_lobby_info(lobby_id)
+                            if not lobby_info:
+                                send("[ERR]:lobby not found", conn)
+                            elif lobby_info.get("host") != username:
+                                send("[ERR]:only host can start game", conn)
+                            elif len(lobby_info["players"]) < 2:
+                                send("[ERR]:need at least 2 players", conn)
+                            else:
+                                send("[ERR]:cannot start game", conn)
                     except:
                         send("[ERR]:invalid lobby id", conn)
                 else:
