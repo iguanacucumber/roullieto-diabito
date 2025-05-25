@@ -171,18 +171,15 @@ def handle_client(conn, addr):
                 else:
                     send("[ERR]:not logged in", conn)
             elif header == "CREATE_LOBBY":
-                if logged_in:
-                    try:
-                        parts = message.split(":")
-                        lobby_name = parts[0]
-                        max_players = int(parts[1])
-                        lobby_id = create_lobby(lobby_name, max_players, username)
-                        current_lobby = lobby_id
-                        send(f"[LOBBY_CREATED]:{lobby_id}", conn)
-                    except:
-                        send("[ERR]:invalid lobby data", conn)
-                else:
-                    send("[ERR]:not logged in", conn)
+                try:
+                    parts = message.split(":")
+                    lobby_name = parts[0]
+                    max_players = int(parts[1])
+                    lobby_id = create_lobby(lobby_name, max_players, username)
+                    current_lobby = lobby_id
+                    send(f"[LOBBY_CREATED]:{lobby_id}", conn)
+                except:
+                    send("[ERR]:invalid lobby data", conn)
             elif header == "JOIN_LOBBY":
                 if logged_in:
                     try:
@@ -190,7 +187,6 @@ def handle_client(conn, addr):
                         if join_lobby(lobby_id, username):
                             current_lobby = lobby_id
                             send(f"[LOBBY_JOINED]:{lobby_id}", conn)
-                            send(f"[MAP]:{map_json}", conn)
                         else:
                             send("[ERR]:could not join lobby", conn)
                     except:
