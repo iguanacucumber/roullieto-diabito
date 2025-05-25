@@ -4,7 +4,7 @@ def args(argv):
 
     for i in range(len(argv)):
         if argv[i] == "-p" or argv[i] == "--port":
-            port = argv[i + 1]
+            port = int(argv[i + 1])
         elif argv[i] == "-i" or argv[i] == "--ip":
             ip = argv[i + 1]
         elif argv[i] == "-h" or argv[i] == "--help":
@@ -48,14 +48,14 @@ def clear():
 
 
 colors = {
-    "YELLOW": "\033[33m",  # Les couleurs
+    "YELLOW": "\033[33m",
     "PURPLE": "\033[35m",
     "RED": "\033[91m",
     "GREY": "\033[90m",
     "BLUE": "\033[34m",
     "BOLD": "\033[1m",
     "GREEN": "\033[32m",
-    "RESET": "\033[0m",  # Annule la couleur
+    "RESET": "\033[0m",
 }
 
 
@@ -65,7 +65,7 @@ def print_center(text):
 
     terminal_size = get_terminal_size()
     terminal_width = terminal_size[0]
-    ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")  # Sans ça certains texte ne sont pas centrées
+    ansi_escape = re.compile(r"\x1B\[[0-?]*[ -/]*[@-~]")
     visible_text = ansi_escape.sub("", text)
     input_length = len(visible_text)
     empty_space_required = (terminal_width - input_length) // 2
@@ -88,17 +88,13 @@ def UserInput():
         from termios import TCSADRAIN, tcgetattr, tcsetattr
         from tty import setraw
 
-        fd = stdin.fileno()  # Ouvre un buffer/tty/terminal
-        old_settings = tcgetattr(fd)  # Prend les paramètres du buffer/tty
+        fd = stdin.fileno()
+        old_settings = tcgetattr(fd)
         try:
-            setraw(  # Ne print pas les charactères écrits, pas besoin de <enter>
-                stdin.fileno()
-            )
-            return ord(stdin.read(1))  # Lis 1 seule charactère
+            setraw(stdin.fileno())
+            return ord(stdin.read(1))
         finally:
-            tcsetattr(  # Définis les paramètres du tty/buffer
-                fd, TCSADRAIN, old_settings
-            )
+            tcsetattr(fd, TCSADRAIN, old_settings)
 
 
 def create_db(file_name):
@@ -107,7 +103,7 @@ def create_db(file_name):
 
     if system() == "Windows":
         base_folder = os.getenv("APPDATA")
-    else:  # Linux
+    else:
         base_folder = os.path.expanduser("~/.local/share")
 
     full_path = os.path.join(base_folder, "online-pacman")
@@ -115,7 +111,7 @@ def create_db(file_name):
 
     db_path = os.path.join(full_path, file_name)
 
-    if not os.path.exists(db_path):  # Crée la db si elle n'existe pas
+    if not os.path.exists(db_path):
         with open(db_path, "w") as _:
             pass
 
@@ -134,37 +130,35 @@ def send_client(msg, client):
     if header == "ERR":
         clear()
         print(f"{colors['RED']}ERR:{colors['RESET']} {message}")
-        exit()
+        if "logged in" not in message:
+            exit()
 
     return message, header
 
 
 def db_writerow(end_row, db_path):
     import csv
+    import os
 
-    length = 0
-    pos_user = -1
     db = []
+    pos_user = -1
 
-    with open(db_path, mode="r") as file_read:
-        for row in csv.reader(file_read):
-            db.append(row)
-            if row[0] == end_row[0]:
-                pos_user = length
-            length += 1
-
-    with open(db_path, mode="w") as file_write:
-        for row in db:
-            if length == pos_user:
-                csv.writer(file_write).writerow(end_row)
-            else:
-                csv.writer(file_write).writerow(row)
-
-            length += 1
-        if pos_user == -1:
-            csv.writer(file_write).writerow(end_row)
+    if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
+        with open(db_path, mode="r") as file_read:
+            for i, row in enumerate(csv.reader(file_read)):
+                if row and row[0] == end_row[0]:
+                    pos_user = i
+                    db.append(end_row)
+                else:
+                    db.append(row)
 
     if pos_user == -1:
-        return False  # user does not exist in db
-    else:
-        return True  # user exists
+        db.append(end_row)
+
+    with open(db_path, mode="w", newline="") as file_write:
+        writer = csv.writer(file_write)
+        for row in db:
+            if row:
+                writer.writerow(row)
+
+    return pos_user != -1
