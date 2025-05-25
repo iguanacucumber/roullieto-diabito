@@ -99,3 +99,72 @@ def UserInput():
             tcsetattr(  # Définis les paramètres du tty/buffer
                 fd, TCSADRAIN, old_settings
             )
+
+
+def create_db(file_name):
+    import os
+    from platform import system
+
+    if system() == "Windows":
+        base_folder = os.getenv("APPDATA")
+    else:  # Linux
+        base_folder = os.path.expanduser("~/.local/share")
+
+    full_path = os.path.join(base_folder, "online-pacman")
+    os.makedirs(full_path, exist_ok=True)
+
+    db_path = os.path.join(full_path, file_name)
+
+    if not os.path.exists(db_path):  # Crée la db si elle n'existe pas
+        with open(db_path, "w") as _:
+            pass
+
+    return db_path
+
+
+def send_client(msg, client):
+    message = msg.strip().encode("utf-8")
+    msg_length = len(message)
+    send_length = str(msg_length).encode("utf-8")
+    send_length += b" " * (1024 - len(send_length))
+    client.send(send_length)
+    client.send(message)
+    received_message = client.recv(1024).decode("utf-8")
+    message, header = handle_message(received_message)
+    if header == "ERR":
+        clear()
+        print(f"{colors['RED']}ERR:{colors["RESET"]}{message}")
+        exit()
+
+    return message, header
+
+
+def db_writerow(end_row, db_path):
+    import csv
+
+    length = 0
+    pos_user = -1
+    db = []
+
+    with open(db_path, mode="r") as file_read:
+        for row in csv.reader(file_read):
+            db.append(row)
+            if row[0] == end_row[0]:
+                pos_user = length
+            length += 1
+
+    with open(db_path, mode="w") as file_write:
+        for row in db:
+            if length == pos_user:
+                csv.writer(file_write).writerow(end_row)
+            else:
+                csv.writer(file_write).writerow(row)
+
+            length += 1
+        if pos_user == -1:
+            csv.writer(file_write).writerow(end_row)
+
+    if pos_user == -1:
+        return False  # user does not exist in db
+    else:
+        return True  # user exists

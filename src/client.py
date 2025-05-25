@@ -1,20 +1,10 @@
-import socket
+import csv
+from socket import AF_INET, SOCK_STREAM, socket
 from sys import argv
 
-from menu import menu
-from utils import args, colors, print_center
-
-
-def send(msg):
-    message = msg.strip().encode("utf-8")
-    msg_length = len(message)
-    send_length = str(msg_length).encode("utf-8")
-    send_length += b" " * (1024 - len(send_length))
-    client.send(send_length)
-    client.send(message)
-    received_message = client.recv(1024).decode("utf-8")
-    print(received_message)
-    return received_message
+from menus import start_menu
+from utils import args, colors, create_db, print_center, db_writerow
+from utils import send_client as send
 
 
 def affiche(map, PacmanPowered):
@@ -54,17 +44,35 @@ def affiche(map, PacmanPowered):
     print_center(f"{colors['BOLD']}SHIFT + Q{colors['RESET']}: Exit, {colors['BOLD']}Movement{colors['RESET']}: ZQSD or Arrow keys")
 
 
-def ClientGame():
-    pass
+username = ""
+password = ""
+
+cache_path = create_db("password_cache.csv")
+
+with open(cache_path, mode="r") as file:
+    for row in csv.reader(file):
+        username = row[0]
+        password = row[1]
+
+if not username or not password:
+    username = input("Username:\n")
+    password = input("Password:\n")
 
 
-while True:
-    menu()
+port, remote_ip = args(argv)
 
-    if not menu:
-        port, remote_ip = args(argv)
+client = socket(AF_INET, SOCK_STREAM)  # IPV4 TCP
+try:
+    client.connect((remote_ip, port))
+except ConnectionRefusedError:
+    print(f"{colors["RED"]}ERR:{colors["RESET"]} Server is offline")
+    exit()
 
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # IPV4 TCP
-        client.connect((remote_ip, port))
+send("[USERNAME]:" + username, client)
+send("[PASSWORD]:" + password, client)
 
-        print((remote_ip, port))
+logged = True
+
+db_writerow([username, password], cache_path)
+
+start_menu(logged, client)
