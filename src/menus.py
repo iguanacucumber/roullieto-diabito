@@ -84,6 +84,86 @@ def draw_lobby_list(lobbies, selected):
     )
 
 
+def draw_lobby_room(lobby_info):
+    clear()
+    print("\n")
+    print_center(f"{colors['BOLD']}╭─────────────────────────────────╮{colors['RESET']}")
+    print_center(f"{colors['BOLD']}│       LOBBY: {lobby_info['name']:<15} │{colors['RESET']}")
+    print_center(f"{colors['BOLD']}╰─────────────────────────────────╯{colors['RESET']}")
+    print("\n")
+
+    print_center(f"{colors['BLUE']}Players ({len(lobby_info['players'])}/{lobby_info['max_players']}):{colors['RESET']}")
+    print()
+
+    for i, player in enumerate(lobby_info["players"], 1):
+        if i == 1:
+            print_center(f"{colors['YELLOW']}👑 {player} (Host){colors['RESET']}")
+        else:
+            print_center(f"{colors['GREEN']}🟢 {player}{colors['RESET']}")
+
+    # Show empty slots
+    for i in range(len(lobby_info["players"]), lobby_info["max_players"]):
+        print_center(f"{colors['GREY']}⚪ Waiting for player...{colors['RESET']}")
+
+    print("\n")
+
+    if lobby_info["status"] == "waiting":
+        if len(lobby_info["players"]) >= 2:
+            print_center(f"{colors['GREEN']}Ready to start!{colors['RESET']}")
+            print_center(
+                f"{colors['BLUE']}S{colors['RESET']}: Start Game | {colors['BLUE']}R{colors['RESET']}: Refresh | {colors['BLUE']}L{colors['RESET']}: Leave"
+            )
+        else:
+            print_center(f"{colors['YELLOW']}Waiting for more players...{colors['RESET']}")
+            print_center(f"{colors['BLUE']}R{colors['RESET']}: Refresh | {colors['BLUE']}L{colors['RESET']}: Leave")
+    else:
+        print_center(f"{colors['RED']}Game in progress...{colors['RESET']}")
+        print_center(f"{colors['BLUE']}L{colors['RESET']}: Leave Lobby")
+
+
+def lobby_room(client, lobby_id):
+    while True:
+        message, header = send(f"[GET_LOBBY_INFO]:{lobby_id}", client)
+
+        if header == "LOBBY_INFO":
+            try:
+                lobby_info = json.loads(message)
+                draw_lobby_room(lobby_info)
+            except:
+                print_center(f"{colors['RED']}Error getting lobby info{colors['RESET']}")
+                input()
+                return False
+        elif header == "ERR":
+            print_center(f"{colors['RED']}Error: {message}{colors['RESET']}")
+            input()
+            return False
+
+        key = UserInput()
+
+        if key == 115 or key == 83:  # 's' or 'S' - Start game
+            if lobby_info["status"] == "waiting" and len(lobby_info["players"]) >= 2:
+                message, header = send(f"[START_GAME]:{lobby_id}", client)
+                if header == "GAME_STARTED":
+                    print_center(f"{colors['GREEN']}Game started!{colors['RESET']}")
+                    print_center("Press Enter to continue...")
+                    input()
+                    # TODO: Start actual game logic here
+                    return True
+                else:
+                    print_center(f"{colors['RED']}Could not start game: {message}{colors['RESET']}")
+                    print_center("Press Enter to continue...")
+                    input()
+        elif key == 114 or key == 82:  # 'r' or 'R' - Refresh
+            continue
+        elif key == 108 or key == 76:  # 'l' or 'L' - Leave
+            message, header = send(f"[LEAVE_LOBBY]:{lobby_id}", client)
+            if header == "OK":
+                print_center(f"{colors['GREEN']}Left lobby successfully{colors['RESET']}")
+                print_center("Press Enter to continue...")
+                input()
+            return False
+
+
 def createLobbyMenu(client):
     clear()
     print("\n\n\n")
@@ -113,13 +193,15 @@ def createLobbyMenu(client):
     message, header = send(f"[CREATE_LOBBY]:{lobby_name}:{max_players}", client)
 
     if header == "LOBBY_CREATED":
+        lobby_id = int(message)
         print_center(f"{colors['GREEN']}Lobby created successfully!{colors['RESET']}")
-        print_center(f"{colors['BLUE']}Lobby ID: {message}{colors['RESET']}")
+        print_center(f"{colors['BLUE']}Lobby ID: {lobby_id}{colors['RESET']}")
         print_center("Press Enter to continue...")
         input()
-        return True
+
+        return lobby_room(client, lobby_id)
     else:
-        print_center(f"{colors['RED']}Failed to create lobby{colors['RESET']}")
+        print_center(f"{colors['RED']}Failed to create lobby: {message}{colors['RESET']}")
         input()
         return False
 
@@ -153,10 +235,8 @@ def lobbyMenu(client):
                 message, header = send(f"[JOIN_LOBBY]:{lobby_id}", client)
 
                 if header == "LOBBY_JOINED":
-                    print_center(f"{colors['GREEN']}Joined lobby successfully!{colors['RESET']}")
-                    print_center("Press Enter to continue...")
-                    input()
-                    return True
+                    if lobby_room(client, lobby_id):
+                        return True
                 else:
                     print_center(f"{colors['RED']}Failed to join lobby: {message}{colors['RESET']}")
                     print_center("Press Enter to continue...")
