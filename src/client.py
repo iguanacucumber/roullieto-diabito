@@ -89,6 +89,8 @@ while True:
         print(send("[PASSWORD]:" + input("Password: ")))
         if header == "OK":
             pass
+        elif header == "MAP":
+            affiche(message, False)
 
     if ConnectToALobby():
         ClientGame()
