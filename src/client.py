@@ -1,7 +1,8 @@
 import socket
 from sys import argv
 
-from utils import args, colors, handle_message
+from menu import menu
+from utils import args, colors, print_center
 
 
 def send(msg):
@@ -16,81 +17,54 @@ def send(msg):
     return received_message
 
 
-def ConnectToALobby():
-    import json
-
-    if header == "MAP":
-        game_map = json.loads(message)  # Converts from json to a python list
-        print(game_map)
-
-
-def affiche(map, PacmanPowered):  # Pour faire jolie
+def affiche(map, PacmanPowered):
     nombre = 0
     longueur = int(len(map))
-    print("╭", end="")
-    print("─" * int(longueur * 2 - 5), end="")
-    print("╮", end="")
-    print()
+    up_border = "╭" + "─" * int(longueur * 2 - 5) + "╮"
+    print_center(up_border)
     for ligne in map:
         nombre += 1
-        print("│ ", end="")
+        line = "│ "
         for case in ligne:
             if case == 0:
-                print(f"{colors['GREY']}·{colors['RESET']}", end=" ")
-
+                line += f"{colors['GREY']}·{colors['RESET']} "
             elif case == 1:
-                print(f"{colors['BLUE']}8{colors['RESET']}", end=" ")
+                line += f"{colors['BLUE']}8{colors['RESET']} "
             elif case == 2:
                 if PacmanPowered:
-                    print(f"{colors['BOLD']}ᗤ{colors['RESET']}", end=" ")
+                    line += f"{colors['BOLD']}ᗤ{colors['RESET']} "
                 else:
-                    print(f"{colors['YELLOW']}ᗤ{colors['RESET']}", end=" ")
-
+                    line += f"{colors['YELLOW']}ᗤ{colors['RESET']} "
             elif case == 3:
-                print(f"{colors['RED']}ᗣ{colors['RESET']}", end=" ")
+                line += f"{colors['RED']}ᗣ{colors['RESET']} "
             elif case == 4:
-                print(f"{colors['PURPLE']}ᗣ{colors['RESET']}", end=" ")
+                line += f"{colors['PURPLE']}ᗣ{colors['RESET']} "
             elif case == 5:
-                print(f"{colors['GREEN']}ᗣ{colors['RESET']}", end=" ")
+                line += f"{colors['GREEN']}ᗣ{colors['RESET']} "
             elif case == 6:
-                print(f"{colors['YELLOW']}⬤{colors['RESET']}", end=" ")
+                line += f"{colors['YELLOW']}⬤{colors['RESET']} "
             else:
-                print("  ", end="")
-        print("│", end="")
-        print()
+                line += "  "
+        line += "│"
+        print_center(line)
 
-    print("╰", end="")
-    print("─" * int(longueur * 2 - 5), end="")
-    print("╯")
-    print(f"\n{colors['BOLD']}SHIFT + Q{colors['RESET']}: Exit, {colors['BOLD']}Movement{colors['RESET']}: ZQSD or Arrow keys")
-
-    print("\n")
+    down_border = "╰" + "─" * int(longueur * 2 - 5) + "╯"
+    print_center(down_border)
+    print()
+    print_center(f"{colors['BOLD']}SHIFT + Q{colors['RESET']}: Exit, {colors['BOLD']}Movement{colors['RESET']}: ZQSD or Arrow keys")
 
 
 def ClientGame():
     pass
 
 
-port, remote_ip = args(argv)
-
 while True:
-    # clear()
+    menu()
 
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # IPV4 TCP
-    client.connect((remote_ip, port))
+    if not menu:
+        port, remote_ip = args(argv)
 
-    print((remote_ip, port))
-    print("Login if user exists, automatically signs you up otherwise\n")
-    global header  # Make those variables available out of this scope
-    global message  # Make them available in everywhere in this file
-    response = send("[USERNAME]:" + input("Username: "))
-    message, header = handle_message(response)
-    if header == "OK":
-        print(send("[PASSWORD]:" + input("Password: ")))
-        if header == "OK":
-            pass
-        elif header == "MAP":
-            affiche(message, False)
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # IPV4 TCP
+        client.connect((remote_ip, port))
 
-    if ConnectToALobby():
-        ClientGame()
+        print((remote_ip, port))
