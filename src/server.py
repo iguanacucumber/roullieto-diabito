@@ -21,10 +21,11 @@ else:  # Linux
 full_path = os.path.join(base_folder, "online-pacman")
 os.makedirs(full_path, exist_ok=True)
 
-db_path = os.path.join(full_path, "db.csv")
+users_db_path = os.path.join(full_path, "users.csv")
+lobbies_db_path = os.path.join(full_path, "lobbies.csv")
 
-if not os.path.exists(db_path):  # Crée la db si elle n'existe pas
-    with open(db_path, "w") as _:
+if not os.path.exists(users_db_path):  # Crée la db si elle n'existe pas
+    with open(users_db_path, "w") as _:
         pass
 
 
@@ -42,14 +43,14 @@ def db_writerow(end_row):
 
     locked_db = True
 
-    with open(db_path, mode="r") as file_read:
+    with open(users_db_path, mode="r") as file_read:
         for row in csv.reader(file_read):
             db.append(row)
             if row[0] == end_row[0]:
                 pos_user = length
             length += 1
 
-    with open(db_path, mode="w") as file_write:
+    with open(users_db_path, mode="w") as file_write:
         for row in db:
             if length == pos_user:
                 csv.writer(file_write).writerow(end_row)
@@ -95,7 +96,7 @@ def handle_client(conn, addr):
             send("[OK]", conn)
         elif header == "PASSWORD":
             password = message
-            with open(db_path, mode="r") as file:
+            with open(users_db_path, mode="r") as file:
                 for row in csv.reader(file):
                     if row[0] == username:
                         user_exists = True
