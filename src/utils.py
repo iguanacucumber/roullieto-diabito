@@ -133,7 +133,7 @@ def send_client(msg, client):
     message, header = handle_message(received_message)
     if header == "ERR":
         clear()
-        print(f"{colors['RED']}ERR:{colors["RESET"]}{message}")
+        print(f"{colors['RED']}ERR:{colors['RESET']} {message}")
         exit()
 
     return message, header

@@ -2,8 +2,8 @@ import csv
 from socket import AF_INET, SOCK_STREAM, socket
 from sys import argv
 
-from menus import start_menu
-from utils import args, colors, create_db, print_center, db_writerow
+from menus import logInMenu, start_menu
+from utils import args, colors, create_db, print_center
 from utils import send_client as send
 
 
@@ -55,9 +55,7 @@ with open(cache_path, mode="r") as file:
         password = row[1]
 
 if not username or not password:
-    username = input("Username:\n")
-    password = input("Password:\n")
-
+    username, password = logInMenu()
 
 port, remote_ip = args(argv)
 
@@ -65,7 +63,7 @@ client = socket(AF_INET, SOCK_STREAM)  # IPV4 TCP
 try:
     client.connect((remote_ip, port))
 except ConnectionRefusedError:
-    print(f"{colors["RED"]}ERR:{colors["RESET"]} Server is offline")
+    print(f"{colors['RED']}ERR:{colors['RESET']} Server is offline")
     exit()
 
 send("[USERNAME]:" + username, client)
@@ -73,6 +71,7 @@ send("[PASSWORD]:" + password, client)
 
 logged = True
 
-db_writerow([username, password], cache_path)
+with open(cache_path, mode="w") as file_write:
+    csv.writer(file_write).writerow([username, password])
 
 start_menu(logged, client)

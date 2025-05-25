@@ -1,7 +1,8 @@
+import csv
 import re
 from os import get_terminal_size
 
-from utils import UserInput, clear, colors, print_center
+from utils import UserInput, clear, colors, create_db, print_center
 from utils import send_client as send
 
 
@@ -42,6 +43,13 @@ def draw_menu(items, selected):
     print_center("Use ↑ ↓ to move, Enter to select an option")
 
 
+def centered_input(prompt):
+    cols = get_terminal_size().columns
+    col = (cols - len(prompt)) // 2
+    print(" " * col + prompt, end="", flush=True)
+    return input()
+
+
 def lobbyMenu():
     selected = 0
     lobby_items = []  # TODO: get lobbies from server
@@ -50,8 +58,19 @@ def lobbyMenu():
 
 
 def logInMenu():
-    pass
-    # create_db("password_cache.csv")
+    for label in ["Username", "Password"]:
+        clear()
+        print("\n\n\n")
+        print_center(f"{colors['BOLD']}╭────────────────╮{colors['RESET']}")
+        print_center(f"{colors['BOLD']}│   LOGIN MENU   │{colors['RESET']}")
+        print_center(f"{colors['BOLD']}╰────────────────╯{colors['RESET']}")
+        print()
+        print_center(f"{colors['BLUE']}{label}:{colors['RESET']}")
+        if label == "Username":
+            username = centered_input("> ").strip()
+        else:
+            password = centered_input("> ").strip()
+    return username, password
 
 
 def start_menu(logged, client):
@@ -64,7 +83,14 @@ def start_menu(logged, client):
 
     while True:
         if not logged:
-            logInMenu()
+            username, password = logInMenu()
+            send("[USERNAME]:" + username, client)
+            send("[PASSWORD]:" + password, client)
+            logged = True
+
+            cache_path = create_db("password_cache.csv")
+            with open(cache_path, mode="w") as file_write:
+                csv.writer(file_write).writerow([username, password])
 
         draw_menu(start_menu_items, selected)
 
@@ -76,13 +102,11 @@ def start_menu(logged, client):
             selected -= 1
         elif input == 13:
             if selected == 0:
-                pass
                 lobbyMenu()
             if selected == 1:
-                logInMenu()
+                logged = False
             if selected == 2:
                 clear()
-                send("[DISCONNECT]:", client)
                 exit()
 
         if selected < 0:

@@ -25,7 +25,12 @@ def handle_client(conn, addr):
     user_exists = False
     highscore = 0
     while True:
-        msg_length = conn.recv(1024).decode("utf-8")
+        try:
+            msg_length = conn.recv(1024).decode("utf-8")
+        except ConnectionResetError:
+            print(f"{addr[0]}:{addr[1]} disconnected.")  # IP:Port
+            exit()
+
         if not msg_length:
             continue
 
@@ -63,9 +68,6 @@ def handle_client(conn, addr):
                     send("[MAP]:" + map_json, conn)
                 else:
                     send("[ERR]:wrong password", conn)
-        elif header == "DISCONNECT":
-            db_writerow([username, password, highscore, "False"])
-            return
         else:
             send("[ERR]", conn)
 
