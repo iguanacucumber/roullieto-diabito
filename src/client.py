@@ -28,7 +28,7 @@ def affiche(map, PacmanPowered):  # Pour faire jolie
     nombre = 0
     longueur = int(len(map))
     print("╭", end="")
-    print("─" * int(longueur * 2 + 5), end="")
+    print("─" * int(longueur * 2 - 5), end="")
     print("╮", end="")
     print()
     for ligne in map:
@@ -60,7 +60,7 @@ def affiche(map, PacmanPowered):  # Pour faire jolie
         print()
 
     print("╰", end="")
-    print("─" * int(longueur * 2 + 5), end="")
+    print("─" * int(longueur * 2 - 5), end="")
     print("╯")
     print(f"\n{colors['BOLD']}SHIFT + Q{colors['RESET']}: Exit, {colors['BOLD']}Movement{colors['RESET']}: ZQSD or Arrow keys")
 
