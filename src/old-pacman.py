@@ -71,16 +71,10 @@ def pacmanMouvement(pacmanPosX, pacmanPosY, a, b):
         jeu[pacmanPosY + b][pacmanPosX + a] = 2
         jeu[pacmanPosY][pacmanPosX] = 0
     elif (
-        jeu[pacmanPosY + b][pacmanPosX + a] == 3
-        or jeu[pacmanPosY + b][pacmanPosX + a] == 4
-        or jeu[pacmanPosY + b][pacmanPosX + a] == 5
+        jeu[pacmanPosY + b][pacmanPosX + a] == 3 or jeu[pacmanPosY + b][pacmanPosX + a] == 4 or jeu[pacmanPosY + b][pacmanPosX + a] == 5
     ) and not PacmanPowered:
         jeu[pacmanPosY][pacmanPosX] = jeu[pacmanPosY + b][pacmanPosX + a]
-    elif (
-        jeu[pacmanPosY + b][pacmanPosX + a] == 3
-        or jeu[pacmanPosY + b][pacmanPosX + a] == 4
-        or jeu[pacmanPosY + b][pacmanPosX + a] == 5
-    ) and PacmanPowered:
+    elif (jeu[pacmanPosY + b][pacmanPosX + a] == 3 or jeu[pacmanPosY + b][pacmanPosX + a] == 4 or jeu[pacmanPosY + b][pacmanPosX + a] == 5) and PacmanPowered:
         jeu[pacmanPosY + b][pacmanPosX + a] = 2
         jeu[pacmanPosY + b][pacmanPosX + a] = 0
     elif jeu[pacmanPosY + b][pacmanPosX + a] == 6:
@@ -92,6 +86,7 @@ def fantomeMouvement(fantomesPosX, fantomesPosY, a, b, fantome):
     if jeu[fantomesPosY + b][fantomesPosX + a] == 0 or jeu[fantomesPosY + b][fantomesPosX + a] == 2:
         jeu[fantomesPosY + b][fantomesPosX + a] = fantome
         jeu[fantomesPosY][fantomesPosX] = 0
+
 
 def fantomekill():  # le truc pour tuer le pacman
     global PacmanPowered
