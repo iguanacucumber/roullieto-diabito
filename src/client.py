@@ -75,3 +75,22 @@ with open(cache_path, mode="w") as file_write:
     csv.writer(file_write).writerow([username, password])
 
 start_menu(logged, client)
+
+
+#if header == "PACST":
+    
+#    pacman_state = message
+    
+#if header == "MAP":
+
+#   map_tmp = message
+    
+#   affiche(map_tmp, pastate)
+#    if kay == 65:
+#        send("[MOUV]: avant"
+#    if kay == 66:
+#        send("[MOUV]: arrière"
+#    if kay == 67:
+#        send("[MOUV]: droite"
+#    if kay == 68:
+#        send("[MOUV]: gauche"
