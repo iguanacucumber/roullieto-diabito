@@ -130,35 +130,39 @@ def send_client(msg, client):
     if header == "ERR":
         clear()
         print(f"{colors['RED']}ERR:{colors['RESET']} {message}")
-        if "logged in" not in message:
-            exit()
+        exit()
 
     return message, header
 
 
 def db_writerow(end_row, db_path):
     import csv
-    import os
 
-    db = []
+    length = 0
     pos_user = -1
+    db = []
 
-    if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
-        with open(db_path, mode="r") as file_read:
-            for i, row in enumerate(csv.reader(file_read)):
-                if row and row[0] == end_row[0]:
-                    pos_user = i
-                    db.append(end_row)
-                else:
-                    db.append(row)
+    with open(db_path, mode="r") as file_read:
+        for row in csv.reader(file_read):
+            db.append(row)
+            if row[0] == end_row[0]:
+                pos_user = length
+            length += 1
+
+    with open(db_path, mode="w") as file_write:
+        for row in db:
+            if length == pos_user:
+                csv.writer(file_write).writerow(end_row)
+            else:
+                csv.writer(file_write).writerow(row)
+
+            length += 1
+        if pos_user == -1:
+            csv.writer(file_write).writerow(end_row)
+
+    locked_db = False
 
     if pos_user == -1:
-        db.append(end_row)
-
-    with open(db_path, mode="w", newline="") as file_write:
-        writer = csv.writer(file_write)
-        for row in db:
-            if row:
-                writer.writerow(row)
-
-    return pos_user != -1
+        return False  # user does not exist in db
+    else:
+        return True  # user exists

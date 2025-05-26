@@ -297,9 +297,16 @@ def start_menu(logged, client):
             if selected == 0:
                 lobbyMenu(client)
             if selected == 1:
+                clear()
                 logged = False
+                send("[DISCONNECT]", client)
+                cache_path = create_db("password_cache.csv")
+                with open(cache_path, mode="w") as file_write:
+                    pass
+                exit()
             if selected == 2:
                 clear()
+                send("[DISCONNECT]", client)
                 exit()
 
         if selected < 0:

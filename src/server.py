@@ -6,7 +6,7 @@ import time
 from sys import argv
 
 from map import map
-from utils import args, clear, create_db, db_writerow, handle_message
+from utils import args, clear, colors, create_db, db_writerow, handle_message
 
 map_json = json.dumps(map)
 
@@ -183,7 +183,8 @@ def handle_client(conn, addr):
         while True:
             try:
                 msg_length = conn.recv(1024).decode("utf-8")
-            except (ConnectionResetError, ConnectionAbortedError, OSError):
+            except (ConnectionResetError, ConnectionAbortedError, OSError) as e:
+                print(f"{colors['RED']}ERR:{colors['RESET']} {e}")
                 break
 
             if not msg_length:
@@ -192,7 +193,8 @@ def handle_client(conn, addr):
             try:
                 msg_length = int(msg_length.strip())
                 response = conn.recv(msg_length).decode("utf-8")
-            except (ValueError, ConnectionResetError, ConnectionAbortedError, OSError):
+            except (ValueError, ConnectionResetError, ConnectionAbortedError, OSError) as e:
+                print(f"{colors['RED']}ERR:{colors['RESET']} {e}")
                 break
 
             message, header = handle_message(response)
@@ -321,6 +323,11 @@ def handle_client(conn, addr):
                         send("[ERR]:invalid lobby id", conn)
                 else:
                     send("[ERR]:not in lobby", conn)
+            elif header == "DISCONNECT":
+                cleanup_user(username)
+                username = ""
+                password = ""
+                conn.close()
             else:
                 send("[ERR]:unknown command", conn)
 
