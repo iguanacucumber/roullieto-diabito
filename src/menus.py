@@ -87,9 +87,9 @@ def draw_lobby_list(lobbies, selected):
 def draw_lobby_room(lobby_info):
     clear()
     print("\n")
-    print_center(f"{colors['BOLD']}╭" + "─" *(len(lobby_info['name']) + 15) + f"╮{colors['RESET']}")
+    print_center(f"{colors['BOLD']}╭" + "─" * (len(lobby_info["name"]) + 15) + f"╮{colors['RESET']}")
     print_center(f"{colors['BOLD']}│       LOBBY: {lobby_info['name']} │{colors['RESET']}")
-    print_center(f"{colors['BOLD']}╰" + "─" *(len(lobby_info['name']) + 15) + f"╯{colors['RESET']}")
+    print_center(f"{colors['BOLD']}╰" + "─" * (len(lobby_info["name"]) + 15) + f"╯{colors['RESET']}")
     print("\n")
 
     print_center(f"{colors['BLUE']}Players ({len(lobby_info['players'])}/{lobby_info['max_players']}):{colors['RESET']}")
