@@ -26,7 +26,7 @@ def affiche(map, PacmanPowered):
                 else:
                     line += f"{colors['YELLOW']}ᗤ{colors['RESET']} "
             elif case == 3:
-                line += f"{colors['RED']}ᗣ{colors['RESET']} "
+                line += f"{colors['RED']}ᗤ{colors['RESET']} "
             elif case == 4:
                 line += f"{colors['PURPLE']}ᗣ{colors['RESET']} "
             elif case == 5:
@@ -78,14 +78,35 @@ start_menu(logged, client)
 
 
 #if header == "PACST":
-    
 #    pacman_state = message
-    
+#    if message == "True":
+#        pacman_state = True
+#    elif message == "False":
+#    pacman_state = False
+#    elif message == "loose":
+#     clear()
+#        print(f"""{RED}
+#▄██   ▄    ▄██████▄  ███    █▄       ████████▄   ▄█     ▄████████ ████████▄
+#███   ██▄ ███    ███ ███    ███      ███   ▀███ ███    ███    ███ ███   ▀███
+#███▄▄▄███ ███    ███ ███    ███      ███    ███ ███▌   ███    █▀  ███    ███
+#▀▀▀▀▀▀███ ███    ███ ███    ███      ███    ███ ███▌  ▄███▄▄▄     ███    ███
+#▄██   ███ ███    ███ ███    ███      ███    ███ ███▌ ▀▀███▀▀▀     ███    ███
+#███   ███ ███    ███ ███    ███      ███    ███ ███    ███    █▄  ███    ███
+#███   ███ ███    ███ ███    ███      ███   ▄███ ███    ███    ███ ███    ███
+# ▀█████▀   ▀██████▀  ████████▀       ████████▀  █▀     ██████████ ████████▀
+#    elif message == "win":
+#        clear()
+#        print(f"""{YELLOW}
+#        break
+#__   __           __        __
+#\ \ / /__  _   _  \ \      / / (_)____
+# \ V / _ \| | | |  \ \ /\ / /  | |  _ \ 
+#  | | (_) | |_| |   \ V  V /   | | | | |
+#  |_|\___/ \____|    \_/\_/    |_|_| |_|
+#{RESET}""")
 #if header == "MAP":
-
-#   map_tmp = message
-    
-#   affiche(map_tmp, pastate)
+#   map_tmp = message   
+#   affiche(map_tmp, pacman_state)
 #    if kay == 65:
 #        send("[MOUV]: avant"
 #    if kay == 66:
@@ -94,3 +115,5 @@ start_menu(logged, client)
 #        send("[MOUV]: droite"
 #    if kay == 68:
 #        send("[MOUV]: gauche"
+
+
