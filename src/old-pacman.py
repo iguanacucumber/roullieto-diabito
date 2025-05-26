@@ -1,3 +1,5 @@
+# Ce code est l'ancien code pacman est n'est activement utilisé
+
 import random
 from os import system
 from sys import platform
